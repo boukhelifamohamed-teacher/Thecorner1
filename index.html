@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الزوايا التفاعلية</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1810 50%, #1a0a0a 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 8px;
+            font-size: 13px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(135deg, #b8860b, #ffd700, #b8860b);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .header h1 {
+            color: #1a0a0a;
+            font-size: 1.3rem;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        }
+        
+        .score-timer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #c0c0c0;
+        }
+        
+        .score {
+            font-size: 0.95rem;
+            color: #ffd700;
+        }
+        
+        .timer {
+            font-size: 0.95rem;
+            color: #ff6b6b;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff6b6b);
+            transition: width 1s linear;
+            border-radius: 3px;
+        }
+        
+        .question-container {
+            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+            border-radius: 12px;
+            padding: 12px;
+            border: 2px solid #b8860b;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            margin-bottom: 10px;
+        }
+        
+        .question-number {
+            background: linear-gradient(135deg, #8b0000, #dc143c);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        
+        .question-text {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #f0f0f0;
+            margin-bottom: 12px;
+        }
+        
+        .blank {
+            display: inline-block;
+            min-width: 80px;
+            padding: 2px 8px;
+            border: 2px dashed #ffd700;
+            border-radius: 5px;
+            margin: 2px 3px;
+            text-align: center;
+            color: #888;
+            font-weight: bold;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .blank.filled {
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .blank.correct {
+            border-color: #00ff00 !important;
+            color: #00ff00 !important;
+            background: rgba(0, 255, 0, 0.1) !important;
+        }
+        
+        .blank.wrong {
+            border-color: #ff0000 !important;
+            color: #ff0000 !important;
+            background: rgba(255, 0, 0, 0.1) !important;
+        }
+        
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+        
+        .word-btn {
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+            color: #1a0a0a;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .word-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(255,215,0,0.4);
+        }
+        
+        .word-btn.used {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        
+        .word-btn.selected {
+            background: linear-gradient(135deg, #ffd700, #ffec8b);
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(255,215,0,0.6);
+        }
+        
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .option-btn {
+            background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+            color: #fff;
+            border: 2px solid #c0c0c0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .option-btn:hover {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, #3a3a3a, #4a4a4a);
+        }
+        
+        .option-btn.correct {
+            background: linear-gradient(135deg, #006400, #228b22);
+            border-color: #00ff00;
+        }
+        
+        .option-btn.wrong {
+            background: linear-gradient(135deg, #8b0000, #dc143c);
+            border-color: #ff0000;
+        }
+        
+        .input-container {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .angle-input {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #ffd700;
+            font-size: 1rem;
+            text-align: center;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #b8860b, #ffd700);
+            color: #1a0a0a;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+        }
+        
+        /* Sortable Steps Styles */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+            min-height: 200px;
+        }
+        
+        .step-item {
+            background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+            border: 2px solid #c0c0c0;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: grab;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+            touch-action: none;
+        }
+        
+        .step-item:active {
+            cursor: grabbing;
+        }
+        
+        .step-item.dragging {
+            opacity: 0.9;
+            background: linear-gradient(135deg, #b8860b, #ffd700);
+            color: #1a0a0a;
+            border-color: #ffd700;
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4);
+            z-index: 1000;
+        }
+        
+        .step-item.drag-over {
+            border-color: #ffd700;
+            border-style: dashed;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #8b0000, #dc143c);
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .drag-handle {
+            color: #888;
+            font-size: 1rem;
+            margin-left: auto;
+            padding: 0 5px;
+        }
+        
+        .hint-box {
+            background: linear-gradient(135deg, #4a3000, #6a4500);
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .hint-box.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .hint-title {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .hint-text {
+            color: #f0f0f0;
+            font-size: 0.8rem;
+        }
+        
+        .next-btn {
+            display: none;
+            width: 100%;
+            background: linear-gradient(135deg, #006400, #228b22);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .next-btn.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,255,0,0.3);
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 12px 0;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+        }
+        
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 30px 15px;
+        }
+        
+        .result-screen.show {
+            display: block;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+        
+        .result-score {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        .result-message {
+            font-size: 1rem;
+            color: #c0c0c0;
+            margin-bottom: 20px;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #b8860b, #ffd700);
+            color: #1a0a0a;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255,215,0,0.5);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 0.75rem;
+            margin-top: 15px;
+            border-top: 1px solid #333;
+        }
+        
+        .footer span {
+            color: #ffd700;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .correct-answer {
+            animation: pulse 0.5s ease;
+        }
+        
+        .start-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .start-screen h2 {
+            color: #ffd700;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .start-screen p {
+            color: #c0c0c0;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #b8860b, #ffd700);
+            color: #1a0a0a;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255,215,0,0.5);
+        }
+        
+        .fill-instruction {
+            font-size: 0.75rem;
+            color: #888;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        @media (max-width: 380px) {
+            body {
+                font-size: 12px;
+                padding: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .question-text {
+                font-size: 0.85rem;
+            }
+            
+            .step-item {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+            
+            .blank {
+                min-width: 60px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔷 لعبة الزوايا التفاعلية 🔷</h1>
+        </div>
+        
+        <div id="startScreen" class="start-screen">
+            <h2>مرحباً بك في لعبة الزوايا!</h2>
+            <p>📐 ستتعلم في هذه اللعبة كل شيء عن الزوايا</p>
+            <p>✅ الإجابة الصحيحة: +2 نقطة</p>
+            <p>❌ الإجابة الخاطئة: -1 نقطة</p>
+            <p>⏱️ لديك 90 ثانية لكل سؤال</p>
+            <button class="start-btn" onclick="startGame()">ابدأ اللعبة 🚀</button>
+        </div>
+        
+        <div id="gameScreen" style="display: none;">
+            <div class="score-timer">
+                <div class="score">🏆 النقاط: <span id="score">0</span></div>
+                <div class="timer">⏱️ <span id="timer">90</span> ثانية</div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-container">
+                <div class="question-number">السؤال <span id="questionNum">1</span> من 14</div>
+                <div id="questionContent"></div>
+                <div class="hint-box" id="hintBox">
+                    <div class="hint-title">💡 الإجابة الصحيحة:</div>
+                    <div class="hint-text" id="hintText"></div>
+                </div>
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()">السؤال التالي ←</button>
+            </div>
+        </div>
+        
+        <div id="resultScreen" class="result-screen">
+            <div class="result-title">🎉 انتهت اللعبة!</div>
+            <div class="result-score" id="finalScore">0</div>
+            <div class="result-message" id="resultMessage"></div>
+            <button class="restart-btn" onclick="restartGame()">🔄 إعادة اللعبة</button>
+        </div>
+        
+        <div class="footer">
+            تم تصميم هذا التطبيق من طرف الأستاذ <span>بوخليفة محمد</span>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        let timer = 90;
+        let timerInterval;
+        let questions = [];
+        let answered = false;
+        let draggedItem = null;
+        let touchStartY = 0;
+        let touchCurrentItem = null;
+        
+        // متغيرات السؤال 1 (ملء الفراغات)
+        let filledBlanks = {};
+        let selectedWordBtn = null;
+        
+        const allQuestions = [
+            {
+                type: 'fill-blanks',
+                textParts: [
+                    'الزاوية: هي عبارة عن نصفي مستقيم لهما ',
+                    '، يسمّى هذا المبدأ ',
+                    '، ويُسمّى نصفا المستقيم ',
+                    '.'
+                ],
+                blanks: [
+                    { id: 0, answer: 'نفس المبدأ' },
+                    { id: 1, answer: 'رأس الزاوية' },
+                    { id: 2, answer: 'ضلعا الزاوية' }
+                ],
+                words: ['نفس المبدأ', 'رأس الزاوية', 'ضلعا الزاوية'],
+                hint: 'الزاوية: هي عبارة عن نصفي مستقيم لهما نفس المبدأ، يسمّى هذا المبدأ رأس الزاوية، ويُسمّى نصفا المستقيم ضلعا الزاوية.'
+            },
+            {
+                type: 'true-false',
+                text: 'المنقلة هي الأداة الوحيدة التي تسمح لنا بإنشاء زاوية بقياس معيّن.',
+                answer: true,
+                hint: 'نعم، المنقلة هي الأداة الوحيدة التي تسمح لنا بإنشاء زاوية بقياس معيّن.'
+            },
+            {
+                type: 'angle-types',
+                angles: [
+                    { name: 'الزاوية المنعدمة', answer: '0', hint: 'زاوية قياسها 0°، يكون ضلعاها منطبقين تمامًا.' },
+                    { name: 'الزاوية الحادة', answer: '0-90', acceptedAnswers: ['0-90', '0 - 90', '0-90°', ']0;90[', ']0،90[', ']0,90['], hint: 'زاوية قياسها أكبر من 0° وأصغر من 90°.' },
+                    { name: 'الزاوية القائمة', answer: '90', hint: 'زاوية قياسها 90°.' },
+                    { name: 'الزاوية المنفرجة', answer: '90-180', acceptedAnswers: ['90-180', '90 - 180', '90-180°', ']90;180[', ']90،180[', ']90,180['], hint: 'زاوية قياسها أكبر من 90° وأصغر من 180°.' },
+                    { name: 'الزاوية المستقيمة', answer: '180', hint: 'زاوية قياسها 180°، وضلعاها على استقامة واحدة.' },
+                    { name: 'الزاوية المنعكسة', answer: '180-360', acceptedAnswers: ['180-360', '180 - 360', '180-360°', ']180;360[', ']180،360[', ']180,360['], hint: 'زاوية قياسها أكبر من 180° وأصغر من 360°.' },
+                    { name: 'الزاوية الكاملة', answer: '360', hint: 'زاوية قياسها 360°، وتُمثّل دورة كاملة.' }
+                ]
+            },
+            {
+                type: 'sort-steps',
+                title: 'رتّب خطوات إنشاء زاوية:',
+                steps: [
+                    'نرسم نصف مستقيم.',
+                    'نضع مركز المنقلة على مبدأ نصف المستقيم ليصبح رأس الزاوية.',
+                    'نطابق صفر المنقلة مع نصف المستقيم المرسوم.',
+                    'نحدد على المنقلة قياس الزاوية المطلوب.',
+                    'نرسم نصف مستقيم ثانٍ يمر بالنقطة المحددة.'
+                ],
+                hint: '1. نرسم نصف مستقيم. 2. نضع مركز المنقلة على مبدأ نصف المستقيم. 3. نطابق صفر المنقلة مع نصف المستقيم. 4. نحدد قياس الزاوية المطلوب. 5. نرسم نصف مستقيم ثانٍ.'
+            },
+            {
+                type: 'sort-steps',
+                title: 'رتّب خطوات قياس زاوية:',
+                steps: [
+                    'نضع مركز المنقلة على رأس الزاوية.',
+                    'نطابق أحد ضلعي الزاوية مع صفر المنقلة.',
+                    'نحدد التدريج الصحيح (الداخلي أو الخارجي).',
+                    'نقرأ قياس الزاوية عند الضلع الثاني.',
+                    'نكتب قياس الزاوية بالدرجة (°).'
+                ],
+                hint: '1. نضع مركز المنقلة على رأس الزاوية. 2. نطابق أحد ضلعي الزاوية مع صفر المنقلة. 3. نحدد التدريج الصحيح. 4. نقرأ قياس الزاوية عند الضلع الثاني. 5. نكتب قياس الزاوية بالدرجة.'
+            },
+            {
+                type: 'image-input',
+                text: 'أكتب قياس الزاوية:',
+                image: 'img/img01.png',
+                answer: '45',
+                hint: 'الجواب الصحيح هو 45°'
+            },
+            {
+                type: 'image-input',
+                text: 'أكتب قياس الزاوية:',
+                image: 'img/img02.png',
+                answer: '140',
+                hint: 'الجواب الصحيح هو 140°'
+            },
+            {
+                type: 'image-choice',
+                text: 'اختر القياس الصحيح:',
+                image: 'img/img03.png',
+                options: ['60°', '120°'],
+                answer: '120°',
+                hint: 'الجواب الصحيح هو 120°'
+            },
+            {
+                type: 'image-choice',
+                text: 'اختر القياس الصحيح:',
+                image: 'img/img04.png',
+                options: ['70°', '110°'],
+                answer: '70°',
+                hint: 'الجواب الصحيح هو 70°'
+            },
+            {
+                type: 'image-choice',
+                text: 'ما نوع الزاوية؟',
+                image: 'img/img05.png',
+                options: ['زاوية حادة', 'زاوية منفرجة', 'زاوية منعكسة'],
+                answer: 'زاوية حادة',
+                hint: 'هذه زاوية حادة (قياسها أقل من 90°)'
+            },
+            {
+                type: 'image-choice',
+                text: 'ما نوع الزاوية؟',
+                image: 'img/img06.png',
+                options: ['زاوية حادة', 'زاوية منفرجة', 'زاوية منعكسة'],
+                answer: 'زاوية منفرجة',
+                hint: 'هذه زاوية منفرجة (قياسها بين 90° و 180°)'
+            },
+            {
+                type: 'image-choice',
+                text: 'ما نوع الزاوية؟',
+                image: 'img/img07.png',
+                options: ['زاوية حادة', 'زاوية منفرجة', 'زاوية منعكسة'],
+                answer: 'زاوية منعكسة',
+                hint: 'هذه زاوية منعكسة (قياسها بين 180° و 360°)'
+            },
+            {
+                type: 'image-choice',
+                text: 'ما نوع الزاوية؟',
+                image: 'img/img08.png',
+                options: ['زاوية حادة', 'زاوية قائمة', 'زاوية مستقيمة'],
+                answer: 'زاوية قائمة',
+                hint: 'هذه زاوية قائمة (قياسها 90°)'
+            },
+            {
+                type: 'image-choice',
+                text: 'ما نوع الزاوية؟',
+                image: 'img/img09.png',
+                options: ['زاوية مستقيمة', 'زاوية منفرجة', 'زاوية منعكسة'],
+                answer: 'زاوية مستقيمة',
+                hint: 'هذه زاوية مستقيمة (قياسها 180°)'
+            }
+        ];
+        
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('resultScreen').classList.remove('show');
+            
+            questions = shuffleArray(allQuestions);
+            currentQuestion = 0;
+            score = 0;
+            updateScore();
+            showQuestion();
+        }
+        
+        function restartGame() {
+            document.getElementById('resultScreen').classList.remove('show');
+            startGame();
+        }
+        
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+        
+        function startTimer() {
+            timer = 90;
+            document.getElementById('timer').textContent = timer;
+            document.getElementById('progressFill').style.width = '100%';
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timer--;
+                document.getElementById('timer').textContent = timer;
+                document.getElementById('progressFill').style.width = (timer / 90 * 100) + '%';
+                
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    if (!answered) {
+                        timeUp();
+                    }
+                }
+            }, 1000);
+        }
+        
+        function timeUp() {
+            answered = true;
+            score -= 1;
+            updateScore();
+            
+            const question = questions[currentQuestion];
+            let hintText = '';
+            
+            if (question.type === 'angle-types') {
+                hintText = question.currentAngle.hint;
+            } else {
+                hintText = question.hint;
+            }
+            
+            document.getElementById('hintText').textContent = hintText;
+            document.getElementById('hintBox').classList.add('show');
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        function showQuestion() {
+            answered = false;
+            filledBlanks = {};
+            selectedWordBtn = null;
+            document.getElementById('hintBox').classList.remove('show');
+            document.getElementById('nextBtn').classList.remove('show');
+            document.getElementById('questionNum').textContent = currentQuestion + 1;
+            
+            const question = questions[currentQuestion];
+            const content = document.getElementById('questionContent');
+            
+            startTimer();
+            
+            switch (question.type) {
+                case 'fill-blanks':
+                    renderFillBlanks(question, content);
+                    break;
+                case 'true-false':
+                    renderTrueFalse(question, content);
+                    break;
+                case 'angle-types':
+                    renderAngleTypes(question, content);
+                    break;
+                case 'sort-steps':
+                    renderSortSteps(question, content);
+                    break;
+                case 'image-input':
+                    renderImageInput(question, content);
+                    break;
+                case 'image-choice':
+                    renderImageChoice(question, content);
+                    break;
+            }
+        }
+        
+        // =============== السؤال 1: ملء الفراغات ===============
+        function renderFillBlanks(question, content) {
+            const shuffledWords = shuffleArray(question.words);
+            
+            let textHtml = '<p class="question-text" style="line-height: 2;">';
+            for (let i = 0; i < question.textParts.length; i++) {
+                textHtml += question.textParts[i];
+                if (i < question.blanks.length) {
+                    const blank = question.blanks[i];
+                    const filledWord = filledBlanks[blank.id] || '';
+                    const filledClass = filledWord ? 'filled' : '';
+                    textHtml += `<span class="blank ${filledClass}" data-id="${blank.id}" data-answer="${blank.answer}" onclick="handleBlankClick(${blank.id})">${filledWord || '______'}</span>`;
+                }
+            }
+            textHtml += '</p>';
+            
+            content.innerHTML = `
+                ${textHtml}
+                <div class="words-container" id="wordsContainer">
+                    ${shuffledWords.map((word, index) => {
+                        const isUsed = Object.values(filledBlanks).includes(word);
+                        return `<button class="word-btn ${isUsed ? 'used' : ''}" data-word="${word}" onclick="handleWordClick(this, '${word}')" ${isUsed ? 'disabled' : ''}>${word}</button>`;
+                    }).join('')}
+                </div>
+                <p class="fill-instruction">💡 اضغط على كلمة ثم اضغط على الفراغ المناسب لها</p>
+            `;
+        }
+        
+        function handleWordClick(btn, word) {
+            if (answered) return;
+            
+            // إزالة التحديد من الكلمة السابقة
+            document.querySelectorAll('.word-btn').forEach(b => b.classList.remove('selected'));
+            
+            // تحديد الكلمة الجديدة
+            btn.classList.add('selected');
+            selectedWordBtn = { element: btn, word: word };
+        }
+        
+        function handleBlankClick(blankId) {
+            if (answered) return;
+            
+            const blankElement = document.querySelector(`.blank[data-id="${blankId}"]`);
+            
+            // إذا كان الفراغ ممتلئ، أفرغه
+            if (filledBlanks[blankId]) {
+                const wordToReturn = filledBlanks[blankId];
+                delete filledBlanks[blankId];
+                
+                // إعادة تفعيل الكلمة
+                document.querySelectorAll('.word-btn').forEach(btn => {
+                    if (btn.dataset.word === wordToReturn) {
+                        btn.classList.remove('used');
+                        btn.disabled = false;
+                    }
+                });
+                
+                blankElement.textContent = '______';
+                blankElement.classList.remove('filled');
+                return;
+            }
+            
+            // إذا كانت هناك كلمة محددة
+            if (selectedWordBtn) {
+                filledBlanks[blankId] = selectedWordBtn.word;
+                blankElement.textContent = selectedWordBtn.word;
+                blankElement.classList.add('filled');
+                
+                selectedWordBtn.element.classList.add('used');
+                selectedWordBtn.element.classList.remove('selected');
+                selectedWordBtn.element.disabled = true;
+                selectedWordBtn = null;
+                
+                // التحقق إذا اكتملت كل الفراغات
+                const question = questions[currentQuestion];
+                if (Object.keys(filledBlanks).length === question.blanks.length) {
+                    setTimeout(checkFillBlanks, 300);
+                }
+            }
+        }
+        
+        function checkFillBlanks() {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            let allCorrect = true;
+            
+            question.blanks.forEach(blank => {
+                const blankElement = document.querySelector(`.blank[data-id="${blank.id}"]`);
+                if (filledBlanks[blank.id] === blank.answer) {
+                    blankElement.classList.add('correct');
+                } else {
+                    blankElement.classList.add('wrong');
+                    allCorrect = false;
+                }
+            });
+            
+            if (allCorrect) {
+                score += 2;
+            } else {
+                score -= 1;
+                document.getElementById('hintText').textContent = question.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== السؤال 2: صح أو خطأ ===============
+        function renderTrueFalse(question, content) {
+            content.innerHTML = `
+                <p class="question-text">${question.text}</p>
+                <div class="options-container">
+                    <button class="option-btn" onclick="checkTrueFalse(true)">✅ صح</button>
+                    <button class="option-btn" onclick="checkTrueFalse(false)">❌ خطأ</button>
+                </div>
+            `;
+        }
+        
+        function checkTrueFalse(answer) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            if (answer === question.answer) {
+                score += 2;
+                buttons[answer ? 0 : 1].classList.add('correct');
+            } else {
+                score -= 1;
+                buttons[answer ? 0 : 1].classList.add('wrong');
+                buttons[question.answer ? 0 : 1].classList.add('correct');
+                document.getElementById('hintText').textContent = question.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== السؤال 3: أنواع الزوايا ===============
+        function renderAngleTypes(question, content) {
+            const randomAngle = question.angles[Math.floor(Math.random() * question.angles.length)];
+            question.currentAngle = randomAngle;
+            
+            content.innerHTML = `
+                <p class="question-text">ما قياس أو حصر <strong>${randomAngle.name}</strong>؟</p>
+                <div class="input-container">
+                    <input type="text" class="angle-input" id="angleInput" placeholder="أدخل القياس">
+                    <button class="submit-btn" onclick="checkAngleType()">تحقق</button>
+                </div>
+                <p style="color: #888; font-size: 0.75rem; margin-top: 8px; text-align: center;">
+                    مثال: 90 أو 0-90
+                </p>
+            `;
+        }
+        
+        function normalizeInput(input) {
+            // تنظيف المدخلات وتوحيدها
+            return input
+                .trim()
+                .replace(/°/g, '')           // إزالة رمز الدرجة
+                .replace(/\s+/g, '')         // إزالة المسافات
+                .replace(/،/g, ',')          // توحيد الفاصلة
+                .replace(/؛/g, ';')          // توحيد الفاصلة المنقوطة
+                .replace(/٠/g, '0')          // تحويل الأرقام العربية
+                .replace(/١/g, '1')
+                .replace(/٢/g, '2')
+                .replace(/٣/g, '3')
+                .replace(/٤/g, '4')
+                .replace(/٥/g, '5')
+                .replace(/٦/g, '6')
+                .replace(/٧/g, '7')
+                .replace(/٨/g, '8')
+                .replace(/٩/g, '9');
+        }
+        
+        function checkAngleType() {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            const angle = question.currentAngle;
+            const rawInput = document.getElementById('angleInput').value;
+            const input = normalizeInput(rawInput);
+            
+            let isCorrect = false;
+            
+            // التحقق من التطابق التام مع الإجابة الرئيسية
+            const normalizedAnswer = normalizeInput(angle.answer);
+            if (input === normalizedAnswer) {
+                isCorrect = true;
+            }
+            
+            // التحقق من الإجابات المقبولة الأخرى (تطابق تام فقط)
+            if (!isCorrect && angle.acceptedAnswers) {
+                isCorrect = angle.acceptedAnswers.some(accepted => {
+                    const normalizedAccepted = normalizeInput(accepted);
+                    return input === normalizedAccepted;
+                });
+            }
+            
+            if (isCorrect) {
+                score += 2;
+                document.getElementById('angleInput').style.borderColor = '#00ff00';
+                document.getElementById('angleInput').style.color = '#00ff00';
+            } else {
+                score -= 1;
+                document.getElementById('angleInput').style.borderColor = '#ff0000';
+                document.getElementById('angleInput').style.color = '#ff0000';
+                document.getElementById('hintText').textContent = angle.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== السؤال 4 و 5: ترتيب الخطوات ===============
+        function renderSortSteps(question, content) {
+            const shuffledSteps = shuffleArray([...question.steps]);
+            question.shuffledSteps = shuffledSteps;
+            
+            content.innerHTML = `
+                <p class="question-text">${question.title}</p>
+                <div class="steps-container" id="stepsContainer">
+                    ${shuffledSteps.map((step, index) => `
+                        <div class="step-item" draggable="true" data-original="${step}">
+                            <span class="step-number">${index + 1}</span>
+                            <span class="step-text">${step}</span>
+                            <span class="drag-handle">⋮⋮</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="submit-btn" style="width: 100%; margin-top: 12px;" onclick="checkSortSteps()">تحقق من الترتيب</button>
+            `;
+            
+            initDragAndDrop();
+        }
+        
+        function initDragAndDrop() {
+            const container = document.getElementById('stepsContainer');
+            const items = container.querySelectorAll('.step-item');
+            
+            items.forEach(item => {
+                // Mouse events
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('dragenter', handleDragEnter);
+                item.addEventListener('dragleave', handleDragLeave);
+                item.addEventListener('drop', handleDrop);
+                
+                // Touch events
+                item.addEventListener('touchstart', handleTouchStart, { passive: false });
+                item.addEventListener('touchmove', handleTouchMove, { passive: false });
+                item.addEventListener('touchend', handleTouchEnd);
+            });
+        }
+        
+        function handleDragStart(e) {
+            if (answered) return;
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', '');
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            draggedItem = null;
+        }
+        
+        function handleDragOver(e) {
+            if (answered) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        function handleDragEnter(e) {
+            if (answered) return;
+            this.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            if (answered) return;
+            e.preventDefault();
+            
+            if (draggedItem && draggedItem !== this) {
+                const container = document.getElementById('stepsContainer');
+                const allItems = [...container.querySelectorAll('.step-item')];
+                const draggedIndex = allItems.indexOf(draggedItem);
+                const droppedIndex = allItems.indexOf(this);
+                
+                if (draggedIndex < droppedIndex) {
+                    this.parentNode.insertBefore(draggedItem, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggedItem, this);
+                }
+                
+                updateStepNumbers();
+            }
+            
+            this.classList.remove('drag-over');
+        }
+        
+        // Touch event handlers for mobile
+        function handleTouchStart(e) {
+            if (answered) return;
+            
+            touchCurrentItem = this;
+            const touch = e.touches[0];
+            touchStartY = touch.clientY;
+            
+            this.classList.add('dragging');
+            this.style.position = 'relative';
+            this.style.zIndex = '1000';
+        }
+        
+        function handleTouchMove(e) {
+            if (!touchCurrentItem || answered) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const diffY = touch.clientY - touchStartY;
+            
+            touchCurrentItem.style.transform = `translateY(${diffY}px)`;
+            
+            // Find element under touch point
+            touchCurrentItem.style.pointerEvents = 'none';
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchCurrentItem.style.pointerEvents = '';
+            
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            
+            if (elementBelow) {
+                const stepItem = elementBelow.closest('.step-item');
+                if (stepItem && stepItem !== touchCurrentItem) {
+                    stepItem.classList.add('drag-over');
+                }
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            if (!touchCurrentItem || answered) return;
+            
+            const touch = e.changedTouches[0];
+            
+            touchCurrentItem.style.pointerEvents = 'none';
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchCurrentItem.style.pointerEvents = '';
+            
+            if (elementBelow) {
+                const targetItem = elementBelow.closest('.step-item');
+                if (targetItem && targetItem !== touchCurrentItem) {
+                    const container = document.getElementById('stepsContainer');
+                    const allItems = [...container.querySelectorAll('.step-item')];
+                    const draggedIndex = allItems.indexOf(touchCurrentItem);
+                    const targetIndex = allItems.indexOf(targetItem);
+                    
+                    if (draggedIndex < targetIndex) {
+                        targetItem.parentNode.insertBefore(touchCurrentItem, targetItem.nextSibling);
+                    } else {
+                        targetItem.parentNode.insertBefore(touchCurrentItem, targetItem);
+                    }
+                    
+                    updateStepNumbers();
+                }
+            }
+            
+            touchCurrentItem.classList.remove('dragging');
+            touchCurrentItem.style.transform = '';
+            touchCurrentItem.style.position = '';
+            touchCurrentItem.style.zIndex = '';
+            
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+            
+            touchCurrentItem = null;
+        }
+        
+        function updateStepNumbers() {
+            const items = document.querySelectorAll('.step-item');
+            items.forEach((item, index) => {
+                item.querySelector('.step-number').textContent = index + 1;
+            });
+        }
+        
+        function checkSortSteps() {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            const items = document.querySelectorAll('.step-item');
+            const currentOrder = Array.from(items).map(item => item.querySelector('.step-text').textContent);
+            
+            let isCorrect = true;
+            for (let i = 0; i < question.steps.length; i++) {
+                if (currentOrder[i] !== question.steps[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            
+            if (isCorrect) {
+                score += 2;
+                items.forEach(item => {
+                    item.style.borderColor = '#00ff00';
+                    item.style.background = 'linear-gradient(135deg, #003300, #004400)';
+                });
+            } else {
+                score -= 1;
+                items.forEach(item => {
+                    item.style.borderColor = '#ff0000';
+                });
+                document.getElementById('hintText').textContent = question.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== السؤال 6 و 7: صورة مع إدخال ===============
+        function renderImageInput(question, content) {
+            content.innerHTML = `
+                <p class="question-text">${question.text}</p>
+                <div class="image-container">
+                    <img src="${question.image}" alt="صورة الزاوية" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22><rect fill=%22%23333%22 width=%22200%22 height=%22150%22/><text fill=%22%23ffd700%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 font-size=%2214%22>صورة الزاوية</text></svg>'">
+                </div>
+                <div class="input-container">
+                    <input type="number" class="angle-input" id="imageAngleInput" placeholder="القياس">
+                    <span style="color: #ffd700;">°</span>
+                    <button class="submit-btn" onclick="checkImageInput()">تحقق</button>
+                </div>
+            `;
+        }
+        
+        function checkImageInput() {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            const input = document.getElementById('imageAngleInput').value.trim();
+            
+            if (input === question.answer) {
+                score += 2;
+                document.getElementById('imageAngleInput').style.borderColor = '#00ff00';
+                document.getElementById('imageAngleInput').style.color = '#00ff00';
+            } else {
+                score -= 1;
+                document.getElementById('imageAngleInput').style.borderColor = '#ff0000';
+                document.getElementById('imageAngleInput').style.color = '#ff0000';
+                document.getElementById('hintText').textContent = question.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== الأسئلة 8-14: صورة مع اختيارات ===============
+        function renderImageChoice(question, content) {
+            content.innerHTML = `
+                <p class="question-text">${question.text}</p>
+                <div class="image-container">
+                    <img src="${question.image}" alt="صورة الزاوية" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22150%22><rect fill=%22%23333%22 width=%22200%22 height=%22150%22/><text fill=%22%23ffd700%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 font-size=%2214%22>صورة الزاوية</text></svg>'">
+                </div>
+                <div class="options-container">
+                    ${question.options.map(opt => `<button class="option-btn" onclick="checkImageChoice('${opt}')">${opt}</button>`).join('')}
+                </div>
+            `;
+        }
+        
+        function checkImageChoice(choice) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+            
+            const question = questions[currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => {
+                if (btn.textContent === question.answer) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === choice && choice !== question.answer) {
+                    btn.classList.add('wrong');
+                }
+            });
+            
+            if (choice === question.answer) {
+                score += 2;
+            } else {
+                score -= 1;
+                document.getElementById('hintText').textContent = question.hint;
+                document.getElementById('hintBox').classList.add('show');
+            }
+            
+            updateScore();
+            document.getElementById('nextBtn').classList.add('show');
+        }
+        
+        // =============== التنقل والنتائج ===============
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                endGame();
+            } else {
+                showQuestion();
+            }
+        }
+        
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('resultScreen').classList.add('show');
+            document.getElementById('finalScore').textContent = score + ' نقطة';
+            
+            let message = '';
+            const maxScore = questions.length * 2;
+            const percentage = (score / maxScore) * 100;
+            
+            if (percentage >= 80) {
+                message = '🌟 ممتاز! أنت متميز في الزوايا!';
+            } else if (percentage >= 60) {
+                message = '👏 جيد جداً! استمر في التعلم!';
+            } else if (percentage >= 40) {
+                message = '💪 جيد! حاول مرة أخرى للتحسن!';
+            } else {
+                message = '📚 تحتاج لمراجعة درس الزوايا!';
+            }
+            
+            document.getElementById('resultMessage').textContent = message;
+        }
+    </script>
+</body>
+</html>
